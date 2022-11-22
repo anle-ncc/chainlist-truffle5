@@ -1,4 +1,5 @@
-pragma solidity >0.4.99 <0.6.0;
+// SPDX-License-Identifier: MIT
+pragma solidity 0.8.17;
 
 contract Ownable {
     // State variable
@@ -6,12 +7,15 @@ contract Ownable {
 
     // Modifiers
     modifier onlyOwner() {
-        require(msg.sender == owner, "This function can only be called by the contract owner");
+        require(
+            msg.sender == owner,
+            "This function can only be called by the contract owner"
+        );
         _;
     }
 
     // constructor
-    constructor() public {
-        owner = msg.sender;
+    constructor() {
+        owner = payable(msg.sender);
     }
 }

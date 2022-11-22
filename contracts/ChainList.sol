@@ -1,11 +1,12 @@
-pragma solidity >0.4.99 <0.6.0;
+// SPDX-License-Identifier: MIT
+pragma solidity 0.8.17;
 
 import "./Ownable.sol";
 
 contract ChainList is Ownable {
     // Custom types
     struct Article {
-        uint id;
+        uint256 id;
         address payable seller;
         address buyer;
         string name;
@@ -14,8 +15,8 @@ contract ChainList is Ownable {
     }
 
     // State variables
-    mapping(uint => Article) public articles;
-    uint articleCounter;
+    mapping(uint256 => Article) public articles;
+    uint256 articleCounter;
     address seller;
     address buyer;
     string name;
@@ -23,19 +24,20 @@ contract ChainList is Ownable {
     uint256 price;
 
     // Events
-    event LogSellArticle (
-        uint indexed _id,
+    event LogSellArticle(
+        uint256 indexed _id,
         address indexed _seller,
         string _name,
-        uint256 _price);
+        uint256 _price
+    );
 
-    event LogBuyArticle (
-        uint indexed _id,
+    event LogBuyArticle(
+        uint256 indexed _id,
         address indexed _seller,
         address indexed _buyer,
         string _name,
-        uint256 _price);
-
+        uint256 _price
+    );
 
     // kill the smart contract
     function kill() public onlyOwner {
@@ -43,14 +45,18 @@ contract ChainList is Ownable {
     }
 
     // sell an article
-    function sellArticle(string memory _name, string memory _description, uint256 _price) public {
+    function sellArticle(
+        string memory _name,
+        string memory _description,
+        uint256 _price
+    ) public {
         // a new article
         articleCounter++;
 
         // store this article
         articles[articleCounter] = Article(
             articleCounter,
-            msg.sender,
+            payable(msg.sender),
             address(0),
             _name,
             _description,
@@ -62,13 +68,15 @@ contract ChainList is Ownable {
     }
 
     // buy an article
-    function buyArticle(uint _id) public payable {
-
+    function buyArticle(uint256 _id) public payable {
         // we check whether there is at least one article
         require(articleCounter > 0, "There should be at least one article");
 
         // we check whether the article exists
-        require(_id > 0 && _id <= articleCounter, "Article with this id does not exist");
+        require(
+            _id > 0 && _id <= articleCounter,
+            "Article with this id does not exist"
+        );
 
         // we retrieve the article
         Article storage article = articles[_id];
@@ -77,10 +85,16 @@ contract ChainList is Ownable {
         require(article.buyer == address(0), "Article was already sold");
 
         // we don't allow the seller to buy his/her own article
-        require(article.seller != msg.sender, "Seller cannot buy his own article");
+        require(
+            article.seller != msg.sender,
+            "Seller cannot buy his own article"
+        );
 
         // we check whether the value sent corresponds to the article price
-        require(article.price == msg.value, "Value provided does not match price of article");
+        require(
+            article.price == msg.value,
+            "Value provided does not match price of article"
+        );
 
         // keep buyer's information
         article.buyer = msg.sender;
@@ -89,27 +103,33 @@ contract ChainList is Ownable {
         article.seller.transfer(msg.value);
 
         // trigger the event
-        emit LogBuyArticle(_id, article.seller, article.buyer, article.name, article.price);
+        emit LogBuyArticle(
+            _id,
+            article.seller,
+            article.buyer,
+            article.name,
+            article.price
+        );
     }
 
     // fetch the number of articles in the contract
-    function getNumberOfArticles() public view returns (uint) {
+    function getNumberOfArticles() public view returns (uint256) {
         return articleCounter;
     }
 
     // fetch and returns all article IDs available for sale
-    function getArticlesForSale() public view returns (uint[]memory) {
+    function getArticlesForSale() public view returns (uint256[] memory) {
         // we check whether there is at least one article
-        if(articleCounter == 0) {
-            return new uint[](0);
+        if (articleCounter == 0) {
+            return new uint256[](0);
         }
 
         // prepare output arrays
-        uint[] memory articleIds = new uint[](articleCounter);
+        uint256[] memory articleIds = new uint256[](articleCounter);
 
-        uint numberOfArticlesForSale = 0;
+        uint256 numberOfArticlesForSale = 0;
         // iterate over articles
-        for (uint i = 1; i <= articleCounter; i++) {
+        for (uint256 i = 1; i <= articleCounter; i++) {
             // keep only the ID for the article not already sold
             if (articles[i].buyer == address(0)) {
                 articleIds[numberOfArticlesForSale] = articles[i].id;
@@ -118,8 +138,8 @@ contract ChainList is Ownable {
         }
 
         // copy the articleIds array into the smaller forSale array
-        uint[] memory forSale = new uint[](numberOfArticlesForSale);
-        for (uint j = 0; j < numberOfArticlesForSale; j++) {
+        uint256[] memory forSale = new uint256[](numberOfArticlesForSale);
+        for (uint256 j = 0; j < numberOfArticlesForSale; j++) {
             forSale[j] = articleIds[j];
         }
         return forSale;
